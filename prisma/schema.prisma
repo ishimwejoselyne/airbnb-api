@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  HOST
+  GUEST
+}
+
+enum ListingType {
+  APARTMENT
+  HOUSE
+  VILLA
+  CABIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  username  String   @unique
+  password  String   @map("passwordHash")
+  phone     String
+  role      Role     @default(GUEST)
+  avatar    String?
+  avatarPublicId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  resetToken String?
+  resetTokenExpiry DateTime?
+
+  listings  Listing[] @relation("HostListings")
+  bookings  Booking[] @relation("GuestBookings")
+  reviews   Review[] @relation("UserReviews")
+  profile   Profile?
+
+  @@index([name])
+  @@index([role])
+}
+
+model Listing {
+  id            Int         @id @default(autoincrement())
+  title         String
+  description   String
+  location      String
+  pricePerNight Float
+  guests        Int
+  type          ListingType
+  amenities     String[]
+  rating        Float?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  hostId   Int
+  host     User       @relation("HostListings", fields: [hostId], references: [id], onDelete: Cascade)
+
+  bookings Booking[]
+  photos   ListingPhoto[]
+  reviews  Review[]  @relation("ListingReviews")
+
+  @@index([hostId])
+  @@index([location])
+  @@index([type])
+  @@index([pricePerNight])
+}
+
+model Booking {
+  id         Int           @id @default(autoincrement())
+  checkIn    DateTime
+  checkOut   DateTime
+  guests     Int
+  total      Float
+  status     BookingStatus @default(CONFIRMED)
+  createdAt  DateTime      @default(now())
+
+  userId Int
+  user   User   @relation("GuestBookings", fields: [userId], references: [id], onDelete: Cascade)
+
+  listingId Int
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([listingId])
+  @@index([status])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User   @relation("UserReviews", fields: [userId], references: [id], onDelete: Cascade)
+
+  listingId Int
+  listing   Listing @relation("ListingReviews", fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([userId])
+}
+
+model Profile {
+  id      Int     @id @default(autoincrement())
+  bio     String?
+  website String?
+  country String?
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ListingPhoto {
+  id        Int      @id @default(autoincrement())
+  url       String
+  publicId  String?
+  createdAt DateTime @default(now())
+
+  listingId Int
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+}
+
