@@ -2,16 +2,10 @@ import type { NextFunction, Request, Response } from "express";
 import prisma from "../config/prisma.js";
 import { createProfileSchema, updateProfileSchema } from "../validators/profile.validator.js";
 
-function parseId(idParam: string): number | null {
-  const id = Number(idParam);
-  if (!Number.isInteger(id) || id <= 0) return null;
-  return id;
-}
-
 export async function getProfile(req: Request, res: Response, next: NextFunction) {
   try {
-    const userId = parseId(req.params.id);
-    if (userId === null) return res.status(404).json({ message: "User not found" });
+    const userId = req.params.id;
+    if (!userId) return res.status(404).json({ message: "User not found" });
 
     const profile = await prisma.profile.findUnique({ where: { userId } });
     if (!profile) return res.status(404).json({ message: "Profile not found" });
@@ -24,8 +18,8 @@ export async function getProfile(req: Request, res: Response, next: NextFunction
 
 export async function createProfile(req: Request, res: Response, next: NextFunction) {
   try {
-    const userId = parseId(req.params.id);
-    if (userId === null) return res.status(404).json({ message: "User not found" });
+    const userId = req.params.id;
+    if (!userId) return res.status(404).json({ message: "User not found" });
 
     const result = createProfileSchema.safeParse(req.body);
     if (!result.success) return res.status(400).json({ errors: result.error.issues });
@@ -51,8 +45,8 @@ export async function createProfile(req: Request, res: Response, next: NextFunct
 
 export async function updateProfile(req: Request, res: Response, next: NextFunction) {
   try {
-    const userId = parseId(req.params.id);
-    if (userId === null) return res.status(404).json({ message: "User not found" });
+    const userId = req.params.id;
+    if (!userId) return res.status(404).json({ message: "User not found" });
 
     const result = updateProfileSchema.safeParse(req.body);
     if (!result.success) return res.status(400).json({ errors: result.error.issues });

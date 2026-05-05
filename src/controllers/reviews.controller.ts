@@ -3,12 +3,6 @@ import prisma from "../config/prisma.js";
 import type { AuthRequest } from "../middlewares/auth.middleware.js";
 import { createReviewSchema } from "../validators/reviews.validator.js";
 
-function parseId(idParam: string): number | null {
-  const id = Number(idParam);
-  if (!Number.isInteger(id) || id <= 0) return null;
-  return id;
-}
-
 function parsePositiveInt(value: unknown): number | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const n = typeof value === "number" ? value : Number.parseInt(value, 10);
@@ -18,8 +12,8 @@ function parsePositiveInt(value: unknown): number | null {
 
 export async function getListingReviews(req: Request, res: Response, next: NextFunction) {
   try {
-    const listingId = parseId(req.params.id);
-    if (listingId === null) return res.status(404).json({ error: "Listing not found" });
+    const listingId = req.params.id;
+    if (!listingId) return res.status(404).json({ error: "Listing not found" });
 
     const listingExists = await prisma.listing.findUnique({
       where: { id: listingId },
@@ -55,8 +49,8 @@ export async function getListingReviews(req: Request, res: Response, next: NextF
 
 export async function createListingReview(req: Request, res: Response, next: NextFunction) {
   try {
-    const listingId = parseId(req.params.id);
-    if (listingId === null) return res.status(404).json({ error: "Listing not found" });
+    const listingId = req.params.id;
+    if (!listingId) return res.status(404).json({ error: "Listing not found" });
 
     const authReq = req as AuthRequest;
     if (!authReq.userId) return res.status(401).json({ error: "Missing or invalid token" });
@@ -87,8 +81,8 @@ export async function createListingReview(req: Request, res: Response, next: Nex
 
 export async function deleteReview(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ error: "Review not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ error: "Review not found" });
 
     const authReq = req as AuthRequest;
     if (!authReq.userId) return res.status(401).json({ error: "Missing or invalid token" });

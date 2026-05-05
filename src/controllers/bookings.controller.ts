@@ -5,12 +5,6 @@ import type { AuthRequest } from "../middlewares/auth.middleware.js";
 import { sendEmail } from "../config/email.js";
 import { bookingCancellationEmail, bookingConfirmationEmail } from "../templates/emails.js";
 
-function parseId(idParam: string): number | null {
-  const id = Number(idParam);
-  if (!Number.isInteger(id) || id <= 0) return null;
-  return id;
-}
-
 function diffDays(checkIn: Date, checkOut: Date): number {
   const msPerDay = 24 * 60 * 60 * 1000;
   const start = Date.UTC(checkIn.getUTCFullYear(), checkIn.getUTCMonth(), checkIn.getUTCDate());
@@ -35,7 +29,7 @@ export async function getAllBookings(_req: Request, res: Response, next: NextFun
       prisma.booking.count(),
       prisma.booking.findMany({
         include: {
-          guest: { select: { id: true, name: true } },
+          user: { select: { id: true, name: true } },
           listing: { select: { id: true, title: true } }
         },
         orderBy: { createdAt: "desc" },
@@ -55,13 +49,13 @@ export async function getAllBookings(_req: Request, res: Response, next: NextFun
 
 export async function getBookingById(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "Booking not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "Booking not found" });
 
     const booking = await prisma.booking.findUnique({
       where: { id },
       include: {
-        guest: { select: { id: true, name: true, email: true, username: true, phone: true, role: true, avatar: true, createdAt: true, updatedAt: true } },
+        user: { select: { id: true, name: true, email: true, username: true, phone: true, role: true, avatar: true, createdAt: true, updatedAt: true } },
         listing: { include: { host: { select: { id: true, name: true, avatar: true } } } }
       }
     });
@@ -105,16 +99,17 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     const nights = diffDays(inDate, outDate);
     if (nights <= 0) return res.status(400).json({ message: "Invalid booking dates" });
 
-    const totalPrice = nights * listing.pricePerNight;
+    const total = nights * listing.pricePerNight;
 
     const booking = await prisma.booking.create({
       data: {
-        guestId: authReq.userId,
+        userId: authReq.userId,
         listingId: result.data.listingId,
         checkIn: inDate,
         checkOut: outDate,
-        totalPrice,
-        status: "PENDING"
+        guests: result.data.guests,
+        total,
+        status: "CONFIRMED"
       }
     });
 
@@ -127,7 +122,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         listing.location,
         inDate.toDateString(),
         outDate.toDateString(),
-        totalPrice
+        total
       )
     ).catch((e) => console.error("Booking confirmation email failed", e));
 
@@ -139,8 +134,8 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
 export async function deleteBooking(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "Booking not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "Booking not found" });
 
     const authReq = req as AuthRequest;
     if (!authReq.userId) return res.status(401).json({ message: "Missing or invalid token" });
@@ -148,7 +143,7 @@ export async function deleteBooking(req: Request, res: Response, next: NextFunct
     const booking = await prisma.booking.findUnique({ where: { id } });
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    if (booking.guestId !== authReq.userId && authReq.role !== "ADMIN") {
+    if (booking.userId !== authReq.userId && authReq.role !== "ADMIN") {
       return res.status(403).json({ message: "You can only cancel your own bookings" });
     }
 
@@ -161,7 +156,7 @@ export async function deleteBooking(req: Request, res: Response, next: NextFunct
       data: { status: "CANCELLED" }
     });
 
-    const guest = await prisma.user.findUnique({ where: { id: booking.guestId } });
+    const guest = await prisma.user.findUnique({ where: { id: booking.userId } });
     const listing = await prisma.listing.findUnique({ where: { id: booking.listingId } });
     if (guest && listing) {
       void sendEmail(
@@ -184,8 +179,8 @@ export async function deleteBooking(req: Request, res: Response, next: NextFunct
 
 export async function updateBookingStatus(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "Booking not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "Booking not found" });
 
     const { status } = req.body ?? {};
     if (status !== "PENDING" && status !== "CONFIRMED" && status !== "CANCELLED") {

@@ -3,16 +3,10 @@ import prisma from "../config/prisma.js";
 import { deleteFromCloudinary, uploadToCloudinary } from "../config/cloudinary.js";
 import type { AuthRequest } from "../middlewares/auth.middleware.js";
 
-function parseId(idParam: string): number | null {
-  const id = Number(idParam);
-  if (!Number.isInteger(id) || id <= 0) return null;
-  return id;
-}
-
 export async function uploadAvatar(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "User not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "User not found" });
 
     const authReq = req as AuthRequest;
     if (!authReq.userId) return res.status(401).json({ message: "Missing or invalid token" });
@@ -49,8 +43,8 @@ export async function uploadAvatar(req: Request, res: Response, next: NextFuncti
 
 export async function deleteAvatar(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "User not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "User not found" });
 
     const authReq = req as AuthRequest;
     if (!authReq.userId) return res.status(401).json({ message: "Missing or invalid token" });
@@ -71,8 +65,8 @@ export async function deleteAvatar(req: Request, res: Response, next: NextFuncti
 
 export async function uploadListingPhotos(req: Request, res: Response, next: NextFunction) {
   try {
-    const listingId = parseId(req.params.id);
-    if (listingId === null) return res.status(404).json({ message: "Listing not found" });
+    const listingId = req.params.id;
+    if (!listingId) return res.status(404).json({ message: "Listing not found" });
 
     const authReq = req as AuthRequest;
     if (!authReq.userId) return res.status(401).json({ message: "Missing or invalid token" });
@@ -115,9 +109,9 @@ export async function uploadListingPhotos(req: Request, res: Response, next: Nex
 
 export async function deleteListingPhoto(req: Request, res: Response, next: NextFunction) {
   try {
-    const listingId = parseId(req.params.id);
-    const photoId = parseId(req.params.photoId);
-    if (listingId === null || photoId === null) return res.status(404).json({ message: "Not found" });
+    const listingId = req.params.id;
+    const photoId = req.params.photoId;
+    if (!listingId || !photoId) return res.status(404).json({ message: "Not found" });
 
     const authReq = req as AuthRequest;
     if (!authReq.userId) return res.status(401).json({ message: "Missing or invalid token" });

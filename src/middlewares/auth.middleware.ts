@@ -2,12 +2,12 @@ import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 export interface AuthRequest extends Request {
-  userId?: number;
+  userId?: string;
   role?: "ADMIN" | "HOST" | "GUEST";
 }
 
 type JwtPayload = {
-  userId: number;
+  userId: string;
   role: "ADMIN" | "HOST" | "GUEST";
 };
 

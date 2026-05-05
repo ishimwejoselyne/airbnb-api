@@ -12,12 +12,6 @@ function toListingType(value: unknown): "APARTMENT" | "HOUSE" | "VILLA" | "CABIN
   return null;
 }
 
-function parseId(idParam: string): number | null {
-  const id = Number(idParam);
-  if (!Number.isInteger(id) || id <= 0) return null;
-  return id;
-}
-
 function parsePositiveInt(value: unknown): number | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const n = typeof value === "number" ? value : Number.parseInt(value, 10);
@@ -141,8 +135,8 @@ export async function getListingsStats(_req: Request, res: Response, next: NextF
 
 export async function getListingById(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "Listing not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "Listing not found" });
 
     const listing = await prisma.listing.findUnique({
       where: { id },
@@ -150,7 +144,7 @@ export async function getListingById(req: Request, res: Response, next: NextFunc
         host: true,
         bookings: {
           include: {
-            guest: { select: { name: true, avatar: true } }
+            user: { select: { name: true, avatar: true } }
           }
         },
         reviews: {
@@ -189,8 +183,8 @@ export async function createListing(req: AuthRequest, res: Response, next: NextF
 
 export async function updateListing(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "Listing not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "Listing not found" });
 
     const listing = await prisma.listing.findUnique({ where: { id } });
     if (!listing) return res.status(404).json({ message: "Listing not found" });
@@ -219,8 +213,8 @@ export async function updateListing(req: Request, res: Response, next: NextFunct
 
 export async function deleteListing(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "Listing not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "Listing not found" });
 
     const listing = await prisma.listing.findUnique({ where: { id } });
     if (!listing) return res.status(404).json({ message: "Listing not found" });

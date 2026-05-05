@@ -4,12 +4,6 @@ import prisma from "../config/prisma.js";
 import { createUserSchema, updateUserSchema } from "../validators/users.validator.js";
 import { User } from "@prisma/client";
 
-function parseId(idParam: string): number | null {
-  const id = Number(idParam);
-  if (!Number.isInteger(id) || id <= 0) return null;
-  return id;
-}
-
 function parsePositiveInt(value: unknown): number | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
   const n = typeof value === "number" ? value : Number.parseInt(value, 10);
@@ -46,8 +40,8 @@ export async function getAllUsers(_req: Request, res: Response, next: NextFuncti
 
 export async function getUserById(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "User not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "User not found" });
 
     const baseUser = await prisma.user.findUnique({ where: { id } });
 
@@ -101,8 +95,8 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
 export async function updateUser(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "User not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "User not found" });
 
     const exists = await prisma.user.findUnique({ where: { id }, select: { id: true } });
     if (!exists) return res.status(404).json({ message: "User not found" });
@@ -123,8 +117,8 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
 
 export async function deleteUser(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "User not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "User not found" });
 
     const exists = await prisma.user.findUnique({ where: { id }, select: { id: true } });
     if (!exists) return res.status(404).json({ message: "User not found" });
@@ -138,8 +132,8 @@ export async function deleteUser(req: Request, res: Response, next: NextFunction
 
 export async function getUserListings(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "User not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "User not found" });
 
     const exists = await prisma.user.findUnique({ where: { id }, select: { id: true } });
     if (!exists) return res.status(404).json({ message: "User not found" });
@@ -157,14 +151,14 @@ export async function getUserListings(req: Request, res: Response, next: NextFun
 
 export async function getUserBookings(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(404).json({ message: "User not found" });
+    const id = req.params.id;
+    if (!id) return res.status(404).json({ message: "User not found" });
 
     const exists = await prisma.user.findUnique({ where: { id }, select: { id: true } });
     if (!exists) return res.status(404).json({ message: "User not found" });
 
     const bookings = await prisma.booking.findMany({
-      where: { guestId: id },
+      where: { userId: id },
       include: { listing: { select: { id: true, title: true, location: true, pricePerNight: true } } },
       orderBy: { createdAt: "desc" }
     });
