@@ -8,7 +8,7 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    switch (err.code) {
+    switch ((err as Prisma.PrismaClientKnownRequestError).code) {
       case "P2002":
         return res.status(409).json({ error: "Unique constraint failed" });
       case "P2025":
