@@ -40,7 +40,7 @@ export async function getAllUsers(_req: Request, res: Response, next: NextFuncti
 
 export async function getUserById(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = req.params.id;
+    const id = req.params["id"]as String;
     if (!id) return res.status(404).json({ message: "User not found" });
 
     const baseUser = await prisma.user.findUnique({ where: { id } });

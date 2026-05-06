@@ -12,7 +12,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: "http://localhost:3000",
+        url: "http://localhost:3000/api/v1",
         description: "Development server",
       },
     ],
@@ -31,7 +31,7 @@ const options: swaggerJsdoc.Options = {
   },
   // Tell swagger-jsdoc where to find the JSDoc comments
   // It scans these files for @swagger annotations
-  apis: ["./src/routes/*.ts"],
+  apis: ["./src/routes/v1/*.ts"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

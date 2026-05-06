@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createProfile, getProfile, updateProfile } from "../controllers/profile.controller.js";
+import { createProfile, getProfile, updateProfile } from "../../controllers/profile.controller.js";
 
 const router = Router({ mergeParams: true });
 
