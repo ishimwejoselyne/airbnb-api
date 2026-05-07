@@ -2,7 +2,6 @@ import type { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../config/prisma.js";
 import { createUserSchema, updateUserSchema } from "../validators/users.validator.js";
-import { User } from "@prisma/client";
 
 function parsePositiveInt(value: unknown): number | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
@@ -40,7 +39,7 @@ export async function getAllUsers(_req: Request, res: Response, next: NextFuncti
 
 export async function getUserById(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = req.params["id"]as String;
+    const id = req.params["id"] as string;
     if (!id) return res.status(404).json({ message: "User not found" });
 
     const baseUser = await prisma.user.findUnique({ where: { id } });

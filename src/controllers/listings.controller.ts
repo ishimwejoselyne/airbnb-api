@@ -135,7 +135,7 @@ export async function getListingsStats(_req: Request, res: Response, next: NextF
 
 export async function getListingById(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = req.params.id as String;
+    const id = req.params.id as string;
     if (!id) return res.status(404).json({ message: "Listing not found" });
 
     const listing = await prisma.listing.findUnique({
@@ -183,7 +183,7 @@ export async function createListing(req: AuthRequest, res: Response, next: NextF
 
 export async function updateListing(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = req.params.id as String;
+    const id = req.params.id as string;
     if (!id) return res.status(404).json({ message: "Listing not found" });
 
     const listing = await prisma.listing.findUnique({ where: { id } });
@@ -213,7 +213,7 @@ export async function updateListing(req: Request, res: Response, next: NextFunct
 
 export async function deleteListing(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = req.params.id as String;
+    const id = req.params.id as string;
     if (!id) return res.status(404).json({ message: "Listing not found" });
 
     const listing = await prisma.listing.findUnique({ where: { id } });

@@ -49,7 +49,7 @@ export async function getAllBookings(_req: Request, res: Response, next: NextFun
 
 export async function getBookingById(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = req.params.id as String;
+    const id = req.params.id as string;
     if (!id) return res.status(404).json({ message: "Booking not found" });
 
     const booking = await prisma.booking.findUnique({
@@ -134,7 +134,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
 export async function deleteBooking(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = req.params.id as String;
+    const id = req.params.id as string;
     if (!id) return res.status(404).json({ message: "Booking not found" });
 
     const authReq = req as AuthRequest;
